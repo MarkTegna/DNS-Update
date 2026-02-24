@@ -1,0 +1,15 @@
+# Logs
+logs/*.log
+logs/*.csv
+logs/*.xml
+logs/*.xlsx
+
+# Backups
+*.backup
+*_WORKING.ps1
+
+# Test files
+*_test.xlsx
+fix_*.ps1
+restore_*.ps1
+mainorch_backup.txt

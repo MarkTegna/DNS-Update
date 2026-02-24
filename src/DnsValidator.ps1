@@ -187,34 +187,12 @@ class DnsValidator {
     # Requirements: 4.7, 8.3
     [bool] TestDnsConnectivity() {
         try {
-            # Get local hostname
-            $localHostname = hostname
+            # Simple connectivity test - just try to get DNS zones from the server
+            # This is more reliable than testing local hostname DNS records
+            $zones = Get-DnsServerZone -ComputerName $this.DnsServer -ErrorAction Stop
             
-            # Get local IP address (first non-loopback IPv4 address)
-            $localIp = ""
-            $netIpAddresses = Get-NetIPAddress -AddressFamily IPv4 | Where-Object { 
-                $_.IPAddress -ne '127.0.0.1' -and $_.PrefixOrigin -ne 'WellKnown' 
-            }
-            
-            if ($netIpAddresses -and $netIpAddresses.Count -gt 0) {
-                $localIp = $netIpAddresses[0].IPAddress
-            } else {
-                return $false
-            }
-            
-            # Test forward DNS lookup
-            $forwardResult = $this.ValidateForwardDns($localHostname, $localIp)
-            if ($forwardResult.Success -eq "FAIL") {
-                return $false
-            }
-            
-            # Test reverse DNS lookup
-            $reverseResult = $this.ValidateReverseDns($localIp, $localHostname)
-            if ($reverseResult.Success -eq "FAIL") {
-                return $false
-            }
-            
-            return $true
+            # If we got here without an exception, we can connect to the DNS server
+            return ($null -ne $zones)
         }
         catch {
             return $false

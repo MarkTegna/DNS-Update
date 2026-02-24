@@ -31,19 +31,21 @@ class ProgressDisplay {
         Write-Host "The following DNS records will be updated:" -ForegroundColor Yellow
         Write-Host ""
         
-        # Create table data with ASCII-only characters
-        $tableData = $fixCommands | ForEach-Object {
-            [PSCustomObject]@{
-                Row = $_.RowNumber
-                Type = $_.RecordType
-                Hostname = $_.Hostname
-                IPAddress = $_.IpAddress
-                Zone = $_.Zone
+        # Check if we have commands
+        if ($null -eq $fixCommands -or $fixCommands.Count -eq 0) {
+            Write-Host "  (No FIX commands to display)" -ForegroundColor Gray
+        } else {
+            # Display each command
+            for ($i = 0; $i -lt $fixCommands.Count; $i++) {
+                $cmd = $fixCommands[$i]
+                $rowNum = $cmd.RowNumber + 1
+                $type = $cmd.RecordType
+                $host = $cmd.Hostname
+                $ip = $cmd.IpAddress
+                $zone = $cmd.Zone
+                Write-Host "  Row ${rowNum}: ${type} record - ${host} -> ${ip} (Zone: ${zone})" -ForegroundColor Cyan
             }
         }
-        
-        # Display table using Format-Table
-        $tableData | Format-Table -AutoSize
         
         Write-Host ""
     }

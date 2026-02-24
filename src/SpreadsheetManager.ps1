@@ -99,7 +99,12 @@ class SpreadsheetManager {
         }
         
         try {
-            $this.WorksheetData | Export-Excel -Path $filePath -AutoSize -AutoFilter
+            # Remove existing file to ensure Export-Excel overwrites properly
+            if (Test-Path -Path $filePath) {
+                Remove-Item -Path $filePath -Force
+            }
+            
+            $this.WorksheetData | Export-Excel -Path $filePath -WorksheetName "Sheet1" -AutoSize -AutoFilter
         }
         catch {
             throw "Failed to save spreadsheet: $_"
