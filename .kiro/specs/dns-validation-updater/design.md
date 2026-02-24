@@ -47,6 +47,7 @@ class ConfigurationManager {
     [string] $LogDirectory
     [int] $UpdateLimit
     [string] $DefaultSpreadsheetFilename
+    [bool] $ReadOnlyMode
     
     [void] LoadConfiguration([string] $iniFilePath)
     [void] CreateDefaultConfiguration([string] $iniFilePath)
@@ -55,12 +56,13 @@ class ConfigurationManager {
     [string] GetLogDirectory()
     [int] GetUpdateLimit()
     [string] GetDefaultSpreadsheetFilename()
+    [bool] GetReadOnlyMode()
 }
 ```
 
 **Behavior**:
 - Reads INI file using PowerShell's Get-Content and parsing
-- Creates default INI file with all options if file doesn't exist
+- Creates default INI file with all options if file doesn't exist (ReadOnlyMode defaults to true)
 - Provides accessor methods for configuration values
 - Uses default values if configuration keys are missing
 
@@ -130,6 +132,7 @@ class DnsUpdater {
     [string] $DnsServer
     [int] $UpdateLimit
     [int] $UpdateCount
+    [bool] $ReadOnlyMode
     
     [hashtable] UpdateARecord([string] $hostname, [string] $ipAddress, [string] $zone)
     [hashtable] UpdatePtrRecord([string] $ipAddress, [string] $hostname, [string] $zone)
@@ -141,11 +144,13 @@ class DnsUpdater {
 ```
 
 **Behavior**:
-- Uses Set-DnsServerResourceRecord cmdlet for updates
-- Uses Add-DnsServerResourceRecord cmdlet for creation
+- Uses Set-DnsServerResourceRecord cmdlet for updates (unless ReadOnlyMode is true)
+- Uses Add-DnsServerResourceRecord cmdlet for creation (unless ReadOnlyMode is true)
+- When ReadOnlyMode is true, skips all DNS update operations and logs that updates were skipped
+- When ReadOnlyMode is true, still validates what would be updated and returns simulated results
 - Checks for existing records before update/create decision
 - Enforces update limit per run
-- Returns update results as hashtable with keys: Success (bool), Status (Updated/Failed/MULTIPLE)
+- Returns update results as hashtable with keys: Success (bool), Status (Updated/Failed/MULTIPLE/ReadOnly)
 
 ### 5. Backup Manager
 
@@ -308,6 +313,7 @@ class Configuration {
     [string] $LogDirectory = "./logs"
     [int] $UpdateLimit = 5
     [string] $DefaultSpreadsheetFilename = "DNS_Validation.xlsx"
+    [bool] $ReadOnlyMode = $true
 }
 ```
 
@@ -393,12 +399,16 @@ class Configuration {
 **Validates: Requirements 4.5, 4.6**
 
 ### Property 20: Configuration File Auto-Creation
-*For any* program run where the INI file does not exist, the program should create it with all default options and non-default options commented out.
-**Validates: Requirements 5.7, 5.8**
+*For any* program run where the INI file does not exist, the program should create it with all default options (including ReadOnlyMode=true) and non-default options commented out.
+**Validates: Requirements 5.11, 5.12**
 
 ### Property 21: Configuration Defaults
-*For any* configuration option not specified in the INI file, the program should use the documented default value (DNS server: eit-priaddc00, domain suffix: .tgna.tegna.com, log directory: ./logs, update limit: 5, spreadsheet: DNS_Validation.xlsx).
-**Validates: Requirements 5.2, 5.3, 5.4, 5.5, 5.6**
+*For any* configuration option not specified in the INI file, the program should use the documented default value (DNS server: eit-priaddc00, domain suffix: .tgna.tegna.com, log directory: ./logs, update limit: 5, spreadsheet: DNS_Validation.xlsx, read-only mode: true).
+**Validates: Requirements 5.2, 5.3, 5.4, 5.5, 5.6, 5.7**
+
+### Property 27: Read-Only Mode Safety
+*For any* program run with ReadOnlyMode set to true, no DNS update operations (Set-DnsServerResourceRecord or Add-DnsServerResourceRecord) should be executed, but all validation and display operations should proceed normally.
+**Validates: Requirements 5.8, 5.9, 5.10**
 
 ### Property 22: Log File Format and Location
 *For any* program run, a log file should be created with filename format YYYYMMDD-HH-MM in the configured log directory.
@@ -670,6 +680,11 @@ LogDirectory=./logs
 [Limits]
 # Maximum number of DNS updates per run
 UpdateLimit=5
+
+[Safety]
+# Set to true to prevent all DNS updates (read-only mode for testing)
+# When true, program will validate and show what would be updated but skip actual DNS changes
+ReadOnlyMode=true
 
 # Commented out non-default options:
 # [Advanced]

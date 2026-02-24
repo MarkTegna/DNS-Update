@@ -112,8 +112,12 @@ DNS-Update is a PowerShell-based tool that validates and updates DNS entries by 
 4. THE DNS_Program SHALL support configuration of log directory with default value "./logs"
 5. THE DNS_Program SHALL support configuration of Update_Limit with default value 5
 6. THE DNS_Program SHALL support configuration of default Spreadsheet filename with default value "DNS_Validation.xlsx"
-7. WHEN the .ini file does not exist, THE DNS_Program SHALL create it with all default options
-8. WHEN the .ini file is created, THE DNS_Program SHALL include all available options with non-default options commented out
+7. THE DNS_Program SHALL support configuration of ReadOnlyMode with default value true
+8. WHEN ReadOnlyMode is true, THE DNS_Program SHALL skip all DNS update operations (Set-DnsServerResourceRecord and Add-DnsServerResourceRecord)
+9. WHEN ReadOnlyMode is true, THE DNS_Program SHALL log that updates were skipped due to read-only mode
+10. WHEN ReadOnlyMode is true, THE DNS_Program SHALL still perform all validation operations and display what would be updated
+11. WHEN the .ini file does not exist, THE DNS_Program SHALL create it with all default options
+12. WHEN the .ini file is created, THE DNS_Program SHALL include all available options with non-default options commented out
 
 ### Requirement 6: Logging and Progress Display
 
