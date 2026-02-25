@@ -106,7 +106,7 @@ class MainOrchestrator {
     }
     
     # Process the spreadsheet: load, validate columns, add status column, and validate all rows
-    # Requirements: 1.1, 1.2, 1.3, 1.4, 1.6, 1.8, 1.10
+    # Requirements: 1.1, 1.2, 1.3, 1.4, 1.6, 1.8, 1.10, 1.11
     [void] ProcessSpreadsheet() {
         $this.Log.LogInfo("Processing spreadsheet: $($this.SpreadsheetPath)")
         
@@ -147,13 +147,40 @@ class MainOrchestrator {
         # Initialize progress display
         $this.Progress.Initialize($totalRows)
         
+        # Track processed (non-skipped) rows
+        $processedCount = 0
+        $maxProcessed = 50
+        
         # Loop through all rows and validate each
         for ($i = 0; $i -lt $totalRows; $i++) {
             # Update progress display
             $this.Progress.UpdateProgress($i + 1)
             
+            # Check if we've reached the processing limit
+            if ($processedCount -ge $maxProcessed) {
+                $this.Log.LogInfo("Reached processing limit of $maxProcessed non-skipped rows. Stopping at row $($i + 1).")
+                Write-Host "Processing limit reached ($maxProcessed rows). Remaining rows will be processed on next run." -ForegroundColor Yellow
+                break
+            }
+            
+            # Check if row should be skipped (Validated without FIX)
+            $status = $this.Spreadsheet.GetCellValue($i, 'Status')
+            $forwardDnsSuccess = $this.Spreadsheet.GetCellValue($i, 'Forward DNS Success')
+            $reverseDnsSuccess = $this.Spreadsheet.GetCellValue($i, 'Reverse DNS Success')
+            
+            # Skip if Status is "Validated" and neither validation column contains "FIX"
+            if ($status -eq 'Validated' -and 
+                $forwardDnsSuccess -notmatch '(?i)FIX' -and 
+                $reverseDnsSuccess -notmatch '(?i)FIX') {
+                $this.Log.LogAction("Row $($i + 1) skipped", "Already validated without FIX commands")
+                continue
+            }
+            
             # Validate the row
             $this.ValidateRow($i)
+            
+            # Increment processed count (row was not skipped)
+            $processedCount++
         }
         
         # Complete progress display
@@ -161,7 +188,7 @@ class MainOrchestrator {
             Write-Progress -Activity "Processing DNS Records" -Completed
         }
         
-        $this.Log.LogInfo("Spreadsheet processing complete")
+        $this.Log.LogInfo("Spreadsheet processing complete. Processed $processedCount non-skipped rows.")
     }
     
     # Validate a single row

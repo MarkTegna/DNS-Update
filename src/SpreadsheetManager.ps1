@@ -27,6 +27,30 @@ class SpreadsheetManager {
         return Test-Path -Path $filePath -PathType Leaf
     }
     
+    # Check if a file is locked (open in another process like Excel)
+    [bool] IsFileLocked([string] $filePath) {
+        if (-not $this.FileExists($filePath)) {
+            return $false
+        }
+        
+        try {
+            $fileStream = [System.IO.File]::Open($filePath, 'Open', 'ReadWrite', 'None')
+            $fileStream.Close()
+            $fileStream.Dispose()
+            return $false
+        }
+        catch {
+            return $true
+        }
+    }
+    
+    # Verify file can be accessed (not locked) before processing
+    [void] VerifyFileAccess([string] $filePath) {
+        if ($this.IsFileLocked($filePath)) {
+            throw "File is locked (possibly open in Excel): $filePath. Please close the file and try again."
+        }
+    }
+    
     # Create a sample spreadsheet with local host information
     # Requirements: 1.3, 1.4
     [void] CreateSampleSpreadsheet([string] $filePath) {
@@ -69,6 +93,9 @@ class SpreadsheetManager {
             throw "Spreadsheet file not found: $filePath"
         }
         
+        # Verify file is not locked before attempting to load
+        $this.VerifyFileAccess($filePath)
+        
         try {
             $this.FilePath = $filePath
             $data = Import-Excel -Path $filePath
@@ -96,6 +123,11 @@ class SpreadsheetManager {
     [void] SaveSpreadsheet([string] $filePath) {
         if ($null -eq $this.WorksheetData) {
             throw "No worksheet data to save"
+        }
+        
+        # Verify file is not locked before attempting to save
+        if ($this.FileExists($filePath)) {
+            $this.VerifyFileAccess($filePath)
         }
         
         try {

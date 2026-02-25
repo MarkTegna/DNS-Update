@@ -38,8 +38,10 @@ DNS-Update is a PowerShell-based tool that validates and updates DNS entries by 
 7. WHEN the Spreadsheet contains additional columns, THE DNS_Program SHALL preserve them without modification
 8. WHEN the Spreadsheet is missing required columns, THE DNS_Program SHALL terminate with an error message specifying which columns are missing
 9. WHEN a row has an empty Hostname or IP Address, THE DNS_Program SHALL skip that row and write "Skipped" to the Status_Column
-10. THE DNS_Program SHALL add a Status_Column to the Spreadsheet if it does not exist
-11. WHEN processing completes, THE DNS_Program SHALL write all validation results and status updates to the same Spreadsheet file
+10. WHEN a row has Status_Column value "Validated" and neither Forward DNS Success nor Reverse DNS Success contains "FIX", THE DNS_Program SHALL skip that row
+11. WHEN the DNS_Program has processed 50 rows that were not skipped, THE DNS_Program SHALL stop processing remaining rows
+12. THE DNS_Program SHALL add a Status_Column to the Spreadsheet if it does not exist
+13. WHEN processing completes, THE DNS_Program SHALL write all validation results and status updates to the same Spreadsheet file
 
 ### Requirement 2: DNS Validation Operations
 
