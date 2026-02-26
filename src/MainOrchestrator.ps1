@@ -1,7 +1,7 @@
 # MainOrchestrator.ps1
 # Main orchestrator for DNS-Update program
 # Author: Mark Oldham
-# Version: 0.0.1a
+# Version: 0.1.2
 
 # Import required modules
 . "$PSScriptRoot\ConfigurationManager.ps1"
@@ -47,7 +47,7 @@ class MainOrchestrator {
         # Initialize logger
         $this.Log = [Logger]::new()
         $this.Log.Initialize($this.Config.GetLogDirectory())
-        $this.Log.LogInfo("DNS-Update program started, version 0.0.1a")
+        $this.Log.LogInfo("DNS-Update program started, version 0.1.2")
         $this.Log.LogInfo("Configuration loaded from $configPath")
         
         # Determine spreadsheet path

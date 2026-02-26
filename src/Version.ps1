@@ -1,7 +1,7 @@
 # Version Information for DNS-Update
 # This file contains version metadata for the DNS-Update program
 
-$script:__version__ = "0.0.1a"
+$script:__version__ = "0.1.2"
 $script:__author__ = "Mark Oldham"
 $script:__compile_date__ = "2026-02-26"
 
