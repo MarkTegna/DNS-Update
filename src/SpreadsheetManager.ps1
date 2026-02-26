@@ -93,9 +93,6 @@ class SpreadsheetManager {
             throw "Spreadsheet file not found: $filePath"
         }
         
-        # Verify file is not locked before attempting to load
-        $this.VerifyFileAccess($filePath)
-        
         try {
             $this.FilePath = $filePath
             $data = Import-Excel -Path $filePath
@@ -123,11 +120,6 @@ class SpreadsheetManager {
     [void] SaveSpreadsheet([string] $filePath) {
         if ($null -eq $this.WorksheetData) {
             throw "No worksheet data to save"
-        }
-        
-        # Verify file is not locked before attempting to save
-        if ($this.FileExists($filePath)) {
-            $this.VerifyFileAccess($filePath)
         }
         
         try {

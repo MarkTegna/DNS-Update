@@ -1,7 +1,7 @@
 # MainOrchestrator.ps1
 # Main orchestrator for DNS-Update program
 # Author: Mark Oldham
-# Version: 0.0.1
+# Version: 0.0.1a
 
 # Import required modules
 . "$PSScriptRoot\ConfigurationManager.ps1"
@@ -47,7 +47,7 @@ class MainOrchestrator {
         # Initialize logger
         $this.Log = [Logger]::new()
         $this.Log.Initialize($this.Config.GetLogDirectory())
-        $this.Log.LogInfo("DNS-Update program started, version 0.1.0")
+        $this.Log.LogInfo("DNS-Update program started, version 0.0.1a")
         $this.Log.LogInfo("Configuration loaded from $configPath")
         
         # Determine spreadsheet path
@@ -492,6 +492,18 @@ class MainOrchestrator {
             Write-Host "`nDNS-Update completed successfully!" -ForegroundColor Green
             Write-Host "Results saved to: $($this.SpreadsheetPath)" -ForegroundColor Gray
             Write-Host "Log file: $($this.Log.LogFilePath)" -ForegroundColor Gray
+            
+            # Pause for 10 seconds or until user presses a key
+            Write-Host "`nPress any key to exit (or wait 10 seconds)..." -ForegroundColor Yellow
+            $timeout = 10
+            $startTime = Get-Date
+            while (((Get-Date) - $startTime).TotalSeconds -lt $timeout) {
+                if ([Console]::KeyAvailable) {
+                    [Console]::ReadKey($true) | Out-Null
+                    break
+                }
+                Start-Sleep -Milliseconds 100
+            }
         }
         catch {
             $errorMsg = "DNS-Update failed: $_"
@@ -499,6 +511,18 @@ class MainOrchestrator {
                 $this.Log.LogError($errorMsg)
             }
             Write-Host $errorMsg -ForegroundColor Red
+            
+            # Pause for 10 seconds or until user presses a key (even on error)
+            Write-Host "`nPress any key to exit (or wait 10 seconds)..." -ForegroundColor Yellow
+            $timeout = 10
+            $startTime = Get-Date
+            while (((Get-Date) - $startTime).TotalSeconds -lt $timeout) {
+                if ([Console]::KeyAvailable) {
+                    [Console]::ReadKey($true) | Out-Null
+                    break
+                }
+                Start-Sleep -Milliseconds 100
+            }
             throw
         }
     }
