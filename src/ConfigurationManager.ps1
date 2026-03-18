@@ -1,6 +1,6 @@
 # Configuration Manager for DNS-Update
 # Author: Mark Oldham
-# Version: 0.0.1
+# Version: 0.1.2
 
 class ConfigurationManager {
     [string] $DnsServer
@@ -9,6 +9,7 @@ class ConfigurationManager {
     [int] $UpdateLimit
     [string] $DefaultSpreadsheetFilename
     [bool] $ReadOnlyMode
+    [int] $MaxRowsPerRun
     [string] $ConfigFilePath
 
     ConfigurationManager([string] $iniFilePath) {
@@ -21,6 +22,7 @@ class ConfigurationManager {
         $this.UpdateLimit = 5
         $this.DefaultSpreadsheetFilename = "DNS_Validation.xlsx"
         $this.ReadOnlyMode = $true
+        $this.MaxRowsPerRun = 50
         
         # Load configuration if file exists, otherwise create it
         if (Test-Path $iniFilePath) {
@@ -63,6 +65,7 @@ class ConfigurationManager {
                         }
                         "Limits" {
                             if ($key -eq "UpdateLimit") { $this.UpdateLimit = [int]$value }
+                            if ($key -eq "MaxRowsPerRun") { $this.MaxRowsPerRun = [int]$value }
                         }
                         "Safety" {
                             if ($key -eq "ReadOnlyMode") { 
@@ -97,6 +100,9 @@ LogDirectory=./logs
 [Limits]
 # Maximum number of DNS updates per run
 UpdateLimit=5
+
+# Maximum number of rows to process per run (can be overridden with -MaxRows CLI option)
+MaxRowsPerRun=50
 
 [Safety]
 # Set to true to prevent all DNS updates (read-only mode for testing)
@@ -145,5 +151,9 @@ ReadOnlyMode=true
 
     [bool] GetReadOnlyMode() {
         return $this.ReadOnlyMode
+    }
+
+    [int] GetMaxRowsPerRun() {
+        return $this.MaxRowsPerRun
     }
 }

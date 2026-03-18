@@ -22,20 +22,26 @@ class MainOrchestrator {
     [ProgressDisplay] $Progress
     [string] $SpreadsheetPath
     [array] $FixCommands
+    [int] $MaxRows
     
     MainOrchestrator() {
         $this.FixCommands = @()
+        $this.MaxRows = 0
     }
     
     # Initialize the orchestrator with command line arguments
     # Requirements: 4.7, 4.8, 4.9, 4.10
-    [void] Initialize([string[]] $args) {
+    [void] Initialize([string[]] $arguments) {
         # Parse command line arguments for spreadsheet filename
         $spreadsheetFilename = $null
         
-        for ($i = 0; $i -lt $args.Count; $i++) {
-            if ($args[$i] -eq "-SpreadsheetPath" -and ($i + 1) -lt $args.Count) {
-                $spreadsheetFilename = $args[$i + 1]
+        for ($i = 0; $i -lt $arguments.Count; $i++) {
+            if ($arguments[$i] -eq "-SpreadsheetPath" -and ($i + 1) -lt $arguments.Count) {
+                $spreadsheetFilename = $arguments[$i + 1]
+                $i++
+            }
+            elseif ($arguments[$i] -eq "-MaxRows" -and ($i + 1) -lt $arguments.Count) {
+                $this.MaxRows = [int]$arguments[$i + 1]
                 $i++
             }
         }
@@ -67,6 +73,12 @@ class MainOrchestrator {
         $this.Progress = [ProgressDisplay]::new()
         
         $this.Log.LogInfo("All components initialized successfully")
+        
+        # Set MaxRows: CLI override takes priority, otherwise use INI config value
+        if ($this.MaxRows -le 0) {
+            $this.MaxRows = $this.Config.GetMaxRowsPerRun()
+        }
+        $this.Log.LogInfo("Max rows per run: $($this.MaxRows)")
     }
     
     # Validate prerequisites (PowerShell modules and DNS connectivity)
@@ -149,7 +161,7 @@ class MainOrchestrator {
         
         # Track processed (non-skipped) rows
         $processedCount = 0
-        $maxProcessed = 50
+        $maxProcessed = $this.MaxRows
         
         # Loop through all rows and validate each
         for ($i = 0; $i -lt $totalRows; $i++) {
@@ -456,10 +468,10 @@ class MainOrchestrator {
     
     # Run the complete workflow
     # Requirements: All
-    [void] Run([string[]] $args) {
+    [void] Run([string[]] $arguments) {
         try {
             # Initialize the orchestrator
-            $this.Initialize($args)
+            $this.Initialize($arguments)
             
             # Validate prerequisites (modules and DNS connectivity)
             $this.ValidatePrerequisites()

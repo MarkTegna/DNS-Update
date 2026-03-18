@@ -1,7 +1,7 @@
 # DNS-Update.ps1
 # Main entry point for DNS-Update program
 # Author: Mark Oldham
-# Version: 0.1.0
+# Version: 0.1.2
 # Requirements: 1.1, 1.2, 7.6, 7.7
 
 <#
@@ -18,6 +18,9 @@
     Path to the Excel spreadsheet containing DNS entries. 
     Default: DNS_Validation.xlsx
 
+.PARAMETER MaxRows
+    Maximum number of rows to process per run, overriding the default of 50.
+
 .PARAMETER Help
     Display this help information
 
@@ -30,13 +33,17 @@
     Process a custom spreadsheet
 
 .EXAMPLE
+    .\DNS-Update.ps1 -MaxRows 100
+    Process up to 100 rows instead of the default 50
+
+.EXAMPLE
     .\DNS-Update.ps1 -Help
     Display help information
 
 .NOTES
     Author: Mark Oldham
-    Version: 0.0.1
-    Compile Date: 2024-02-24
+    Version: 0.1.2
+    Compile Date: 2026-03-18
     
     Requirements:
     - PowerShell 5.1 or later
@@ -55,6 +62,9 @@
 param(
     [Parameter(Mandatory=$false)]
     [string]$SpreadsheetPath,
+    
+    [Parameter(Mandatory=$false)]
+    [int]$MaxRows = 0,
     
     [Parameter(Mandatory=$false)]
     [switch]$Help
@@ -80,9 +90,9 @@ $scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
 # Display program header
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "DNS-Update v0.1.0" -ForegroundColor Cyan
+Write-Host "DNS-Update v0.1.2" -ForegroundColor Cyan
 Write-Host "Author: Mark Oldham" -ForegroundColor Cyan
-Write-Host "Compile Date: 2026-02-24" -ForegroundColor Cyan
+Write-Host "Compile Date: 2026-03-18" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -92,12 +102,15 @@ if ($SpreadsheetPath) {
     $arguments += "-SpreadsheetPath"
     $arguments += $SpreadsheetPath
 }
+if ($MaxRows -gt 0) {
+    $arguments += "-MaxRows"
+    $arguments += $MaxRows.ToString()
+}
 
 # Create and run the main orchestrator
 try {
     $orchestrator = [MainOrchestrator]::new()
-    $orchestrator.Run($arguments)
-}
+    $orchestrator.Run($arguments)}
 catch {
     Write-Host ""
     Write-Host "========================================" -ForegroundColor Red
