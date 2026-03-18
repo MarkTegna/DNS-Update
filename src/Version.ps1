@@ -3,7 +3,7 @@
 
 $script:__version__ = "0.1.2"
 $script:__author__ = "Mark Oldham"
-$script:__compile_date__ = "2026-02-26"
+$script:__compile_date__ = "2026-03-18"
 
 function Get-DnsUpdateVersion {
     return @{
